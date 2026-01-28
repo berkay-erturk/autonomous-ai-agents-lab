@@ -1,19 +1,25 @@
-# autonomous-ai-agents-lab
+# Week 1 — Local LLM Tool-Using Agent (Ollama + FastAPI)
 
-A hands-on lab to build autonomous and tool-using AI agents from scratch (FastAPI-first), progressing from single-agent tool calling to RAG, multi-agent orchestration, and local LLM deployment.
+## What it does
+- FastAPI `/ask` endpoint
+- Uses a local LLM (Ollama) to decide whether a tool is needed
+- Executes `calculator` tool for exact arithmetic
+- Returns structured JSON including tool usage metadata
+- Basic IP rate limiting + structured logs
 
-## Tech Stack
-- Python, FastAPI
-- (Week 1) Tool-using agent
-- (Upcoming) Memory, RAG (vector DB), Multi-agent (orchestration), Local LLMs
+## Prerequisites
+- Ollama installed
+- Model pulled: `llama3.1`
 
-## Architecture (Week 1)
-Client -> FastAPI (/ask) -> Agent -> (optional) Tools -> Response
+Check:
+- `curl http://localhost:11434/api/tags`
 
-## Quickstart
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload
+## Run (Windows)
+Double-click:
+- `run_local.bat`
+
+Or manually:
+```bat
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload

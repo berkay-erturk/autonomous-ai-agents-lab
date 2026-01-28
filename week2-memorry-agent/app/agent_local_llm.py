@@ -30,15 +30,25 @@ User question: {q}
 """
 
 
-FINAL_ANSWER_PROMPT = """Answer the user concisely.
+FINAL_ANSWER_PROMPT = """You are a helpful assistant.
 
-User question: {q}
+IMPORTANT:
+- You MUST use the provided session facts when answering.
+- If a fact is present, do not say you don't know it.
+- Be concise.
+
+Session facts:
+{facts}
+
+Conversation so far:
+{history}
+
+Current user question: {q}
 
 Tool used: {used}
 Tool output: {out}
 
-If tool used, use its output.
-If tool not used, answer directly.
+Answer in Turkish.
 """
 
 
@@ -119,7 +129,12 @@ def _extract_math_expression(question: str) -> str | None:
     return expr if expr else None
 
 
-def run_agent_local(question: str) -> AgentResult:
+def run_agent_local(question: str, history: list[dict], facts_text: str) -> AgentResult:
+    history_text = (
+        "\n".join([f"{m['role']}: {m['content']}" for m in history])
+        if history
+        else "(no prior messages)"
+    )
     decision_raw = ollama_generate(TOOL_DECIDER_PROMPT.format(q=question))
     decision = _extract_json(decision_raw)
     print("DECISION_RAW:", decision_raw)
@@ -130,14 +145,26 @@ def run_agent_local(question: str) -> AgentResult:
         if not expr:
             # LLM tool dedi ama expression bulamadık -> tool kullanmayalım
             final = ollama_generate(
-                FINAL_ANSWER_PROMPT.format(q=question, used=False, out="")
+                FINAL_ANSWER_PROMPT.format(
+                    facts=facts_text,
+                    history=history_text,
+                    q=question,
+                    used=True,
+                    out=tool_out,
+                )
             )
             return AgentResult(answer=final, used_tools=False)
 
         tool_out = calculator(expr)
 
         final = ollama_generate(
-            FINAL_ANSWER_PROMPT.format(q=question, used=True, out=tool_out)
+            FINAL_ANSWER_PROMPT.format(
+                facts=facts_text,
+                history=history_text,
+                q=question,
+                used=True,
+                out=tool_out,
+            )
         )
 
         return AgentResult(
@@ -148,5 +175,9 @@ def run_agent_local(question: str) -> AgentResult:
             tool_output=tool_out,
         )
 
-    final = ollama_generate(FINAL_ANSWER_PROMPT.format(q=question, used=False, out=""))
+    final = ollama_generate(
+        FINAL_ANSWER_PROMPT.format(
+            facts=facts_text, history=history_text, q=question, used=False, out=""
+        )
+    )
     return AgentResult(answer=final, used_tools=False)

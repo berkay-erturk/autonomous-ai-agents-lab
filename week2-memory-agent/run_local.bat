@@ -5,7 +5,7 @@ REM Her zaman bu .bat dosyasinin oldugu dizinden calis
 cd /d %~dp0
 
 echo =====================================
-echo Week1 Tool Agent - Local Runner
+echo Week2 Memory Agent - Local Runner
 echo =====================================
 echo.
 
